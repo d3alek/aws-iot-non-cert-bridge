@@ -1,0 +1,15 @@
+{
+    "name": "aws-iot-non-cert-bridge",
+    "version": "0.0.1",
+    "description": "Bridge AWS IoT Cert-authenticated MQTT server to a non-cert authenticated MQTT server",
+    "private": true,
+    "main": "aws-iot-non-cert-bridge.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "minimist": "*",
+        "mqtt": "*",
+        "aws-iot-device-sdk": "*"
+    }
+}

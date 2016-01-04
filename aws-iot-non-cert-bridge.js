@@ -2,18 +2,53 @@ var argv = require('minimist')(process.argv.slice(2));
 var mqtt    = require('mqtt');
 var awsIot = require('aws-iot-device-sdk');
 
+if (!argv['s']) {
+    console.log("Please specify server using -s");
+    return;
+}
+
+if (!argv['p']) {
+    console.log("Please specify port using -p");
+    return;
+}
+
 if (!argv['u']) {
     console.log("Please specify username using -u");
     return;
 }
 
-if (!argv['p']) {
-    console.log("Please specify password using -p");
+if (!argv['d']) {
+    console.log("Please specify password using -d");
+    return;
+}
+
+if (!argv['k']) {
+    console.log("Please specify certificate private key using -k");
+    return;
+}
+
+if (!argv['c']) {
+    console.log("Please specify certificate using -c");
+    return;
+}
+
+if (!argv['r']) {
+    console.log("Please specify root certificate using -r");
     return;
 }
 
 
-var mqttClient  = mqtt.connect('mqtt://m20.cloudmqtt.com:13356', { username:argv['u'] , password:argv['p'] })
+if (!argv['l']) {
+    console.log("Please specify clientId using -l");
+    return;
+}
+
+if (!argv['g']) {
+    console.log("Please specify region using -g");
+    return;
+}
+
+var mqttClient  = mqtt.connect('mqtt://'+argv['s']+':'+argv['p'], { username:argv['u'] , password:argv['d'] })
 var thingIdRegex = /^things\/([^\/]*)$/;
 
 mqttClient.on('connect', function () {
@@ -39,12 +74,14 @@ mqttClient.on("error", function(error) {
 });
 
 var config = {
-    keyPath: 'da66766bd6-private.pem.key',
-    certPath: 'da66766bd6-certificate.pem.crt',
-    caPath: 'root-CA.pem',
-    clientId: 'DhtTest',
-    region: 'eu-west-1'
+    keyPath: argv['k'],
+    certPath: argv['c'],
+    caPath: argv['r'],
+    clientId: argv['l'],
+    region: argv['g']
 };
+
+console.log(config);
 
 var thingShadows = awsIot.thingShadow(config);
 
