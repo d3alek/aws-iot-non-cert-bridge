@@ -48,31 +48,6 @@ if (!argv['g']) {
     return;
 }
 
-var mqttClient  = mqtt.connect('mqtt://'+argv['s']+':'+argv['p'], { username:argv['u'] , password:argv['d'] })
-var thingIdRegex = /^things\/([^\/]*)$/;
-
-mqttClient.on('connect', function () {
-    console.log("MqttClient connected");
-    mqttClient.subscribe('things/+');
-    status("Connected");
-});
-
-mqttClient.on('message', function (topic, message) {
-    console.log('received message '+' on '+topic+': '+message);
-    thingId = topic.match(thingIdRegex);
-    if (thingId) {
-        thingId = thingId[1];
-        console.log("Updating status of " + thingId);
-        setTimeout( function() {
-            thingShadows.update(thingId, JSON.parse(message));
-        }, 2000 );
-    }
-});
-
-mqttClient.on("error", function(error) {
-    status("Error: " + error);
-});
-
 var config = {
     keyPath: argv['k'],
     certPath: argv['c'],
@@ -83,14 +58,11 @@ var config = {
 
 console.log(config);
 
+var registered = [];
 var thingShadows = awsIot.thingShadow(config);
-
-var clientTokenUpdate;
 
 thingShadows.on('connect', function() {
     console.log("ThingShadows connected");
-    thingShadows.register( 'DhtTest' );
-    thingShadows.register( 'ESP-320361' );
 });
 
 thingShadows.on('status', 
@@ -109,6 +81,40 @@ thingShadows.on('timeout',
         function(thingName, clientToken) {
             console.log('received timeout: '+clientToken);
         });
+
+var mqttClient  = mqtt.connect('mqtt://'+argv['s']+':'+argv['p'], { username:argv['u'] , password:argv['d'] })
+var thingIdRegex = /^things\/([^\/]*)$/;
+
+mqttClient.on('connect', function () {
+    console.log("MqttClient connected");
+    mqttClient.subscribe('things/+');
+    status("Connected");
+});
+
+mqttClient.on('message', function (topic, message) {
+    console.log('received message '+' on '+topic+': '+message);
+    thingId = topic.match(thingIdRegex);
+    if (thingId) {
+        thingId = thingId[1];
+        if (registered.indexOf(thingId) < 0) {
+            registered.push(thingId);
+            thingShadows.register(thingId);
+            console.log("Registered: " + registered);
+            console.log("Updating state for the first time " + thingId);
+            setTimeout( function() {
+                thingShadows.update(thingId, JSON.parse(message));
+            }, 2000 );
+        }
+        else {
+            console.log("Updating state of " + thingId);
+            thingShadows.update(thingId, JSON.parse(message));
+        }
+    }
+});
+
+mqttClient.on("error", function(error) {
+    status("Error: " + error);
+});
 
 function status(message) {
     mqttClient.publish('bridge-status', message, retained=true);

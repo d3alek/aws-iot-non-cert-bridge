@@ -8,3 +8,7 @@ username+password authenticated MQTT connection (where the ESP8266 can publish) 
 things/<thing-id> to AWS IoT shadow update for <thing-id>
 and
 AWS IoT shadow delta messages to things/<thing-id>/delta
+
+To update docker image:
+ docker build --no-cache=true -t d3kod/aws-iot-non-cert-bridge .
+ docker push d3kod/aws-iot-non-cert-bridge
