@@ -100,10 +100,7 @@ mqttClient.on('message', function (topic, message) {
             registered.push(thingId);
             thingShadows.register(thingId);
             console.log("Registered: " + registered);
-            console.log("Updating state for the first time " + thingId);
-            setTimeout( function() {
-                thingShadows.update(thingId, JSON.parse(message));
-            }, 2000 );
+            console.log("Waiting for next message before updating state " + thingId);
         }
         else {
             console.log("Updating state of " + thingId);
