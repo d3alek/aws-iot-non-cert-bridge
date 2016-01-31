@@ -2,6 +2,9 @@ var argv = require('minimist')(process.argv.slice(2));
 var mqtt    = require('mqtt');
 var awsIot = require('aws-iot-device-sdk');
 
+var MAX_TIMEOUTS = 3;
+var timeouts = 0;
+
 if (!argv['s']) {
     console.log("Please specify server using -s");
     return;
@@ -79,7 +82,11 @@ thingShadows.on('delta',
 
 thingShadows.on('timeout',
         function(thingName, clientToken) {
-            console.log('received timeout: '+clientToken);
+            console.log('received timeout: ' + clientToken);
+            if (++timeouts >= MAX_TIMEOUTS) {
+                status(MAX_TIMEOUTS + " timeouts - restarting");
+                process.exit(1);
+            }
         });
 
 var mqttClient  = mqtt.connect('mqtt://'+argv['s']+':'+argv['p'], { username:argv['u'] , password:argv['d'] })
